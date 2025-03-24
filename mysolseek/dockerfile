@@ -1,0 +1,23 @@
+FROM ollama/ollama
+
+EXPOSE 11434
+
+# 1. 빌드 시 별도 경로에 모델 다운로드
+ENV OLLAMA_MODELS=/opt/models
+RUN ollama serve & \
+    sleep 5 && \
+    ollama pull deepseek-r1:8b && \
+    kill $(pidof ollama) && \
+    sleep 2
+
+# 2. 진입점 스크립트 생성
+RUN echo '#!/bin/sh\n\
+  if [ ! -d "/root/.ollama/models" ]; then\n\
+    echo "🔨 Initializing volume with pre-downloaded model..."\n\
+    mkdir -p /root/.ollama\n\
+    cp -r /opt/models/* /root/.ollama/\n\
+  fi\n\
+  exec ollama serve' > /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

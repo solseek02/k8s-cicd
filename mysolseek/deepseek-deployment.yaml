@@ -1,0 +1,120 @@
+---
+# 로컬 PV를 위한 StorageClass (WaitForFirstConsumer 설정)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+# 노드5의 PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: deepseek-pv-node5
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/deepseek
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - "node5"
+---
+# 노드6의 PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: deepseek-pv-node6
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/deepseek
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - "node6"
+---
+# PVC (스케줄링 후, Pod가 실행되는 노드의 PV와 바인딩됨)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deepseek-pvc
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 9Gi
+---
+# Deployment (Pod는 highmem: "true" 조건을 만족하는 노드에 스케줄됨)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepseek-deployment
+  labels:
+    app: deepseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deepseek
+  template:
+    metadata:
+      labels:
+        app: deepseek
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: highmem
+                    operator: In
+                    values:
+                      - "true"
+      containers:
+      - name: deepseek
+        image: solseek02/mysolseek:1.0
+        ports:
+        - containerPort: 11434
+        volumeMounts:
+        - name: deepseek-model-volume
+          mountPath: /root/.ollama
+      volumes:
+      - name: deepseek-model-volume
+        persistentVolumeClaim:
+          claimName: deepseek-pvc
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepseek-svc
+spec:
+  selector:
+    app: deepseek
+  ports:
+  - protocol: TCP
+    port: 11434
+    targetPort: 11434
+  type: ClusterIP

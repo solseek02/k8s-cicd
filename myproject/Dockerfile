@@ -22,6 +22,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 프로젝트 파일 복사
+# 프로젝트 파일 복사
 COPY . .
 
 # 정적 파일 수집

@@ -16,7 +16,7 @@ spec:
         django: "true"
       containers:
       - name: django
-        image: solseek02/mydjango:1.0
+        image: solseek02/mydjango:latest
         ports:
         - containerPort: 8000
         env:

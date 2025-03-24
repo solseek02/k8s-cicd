@@ -94,7 +94,7 @@ spec:
                       - "true"
       containers:
       - name: deepseek
-        image: solseek02/mysolseek:1.0
+        image: solseek02/mysolseek:latest
         ports:
         - containerPort: 11434
         volumeMounts:

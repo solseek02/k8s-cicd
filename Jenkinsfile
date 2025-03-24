@@ -57,11 +57,11 @@ pipeline {
             steps {
                 script {
                     // nginx 배포
-                    sh 'kubectl apply -f mynginx/nginx-k8s.yaml'
+                    sh 'kubectl apply -f mynginx/k8s-nginx.yaml'
                     // Django 배포
                     sh 'kubectl apply -f myproject/k8s-django.yaml'
                     // Deepseek 배포
-                    sh 'kubectl apply -f mysolseek/deepseek-deployment.yaml'
+                    sh 'kubectl apply -f mysolseek/k8s-deepseek.yaml'
                 }
             }
         }

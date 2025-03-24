@@ -2,6 +2,8 @@ FROM ollama/ollama
 
 EXPOSE 11434
 
+
+
 # 1. 빌드 시 별도 경로에 모델 다운로드
 ENV OLLAMA_MODELS=/opt/models
 RUN ollama serve & \

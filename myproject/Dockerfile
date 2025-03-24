@@ -6,6 +6,7 @@ WORKDIR /app
 
 # 시스템 패키지 설치
 # 시스템 패키지 설치
+# 시스템 패키지 설치
 RUN apt-get update && apt-get install -y \
     build-essential \
     default-libmysqlclient-dev \
